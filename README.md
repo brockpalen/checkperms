@@ -11,6 +11,14 @@ AUTOFS_PERMISSION_WARNING  Entry defined in autofs but server not exporting to t
 AUTOFS_PERMISSION_ERROR    User has world permission bits set
 ```
 
+## Example Log Messages
+
+```
+Aug 27 22:08:58 gl-build journal: AUTOFS_PERMISSION_ERROR /nfs/autofs/topermissive Permissions: dr-xr-xr-x
+Aug 27 22:08:58 gl-build journal: AUTOFS_PERMISSION_INFO /nfs/autofs/correctexport Permissions: drwxrws---
+Aug 27 22:11:43 gl-build journal: AUTOFS_PERMISSION_WARNING /nfs/autofs/brokenexport Not exported but in autofs config or server not responding
+```
+
 ## Usage
 
 
