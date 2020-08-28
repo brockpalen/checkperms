@@ -95,11 +95,6 @@ for mount in next(os.walk(path))[1]:
     fullpath = path / mount
     logger.debug(f"Checking: {fullpath}")
 
-    # check if path is in ignore list
-    if in_ignore_list(mount, args.ignore):
-        # found in ignore list skip over rest
-        continue
-
     # trigger automount by stepping into the top level of the directory
     try:
         items = os.listdir(fullpath)
@@ -111,6 +106,11 @@ for mount in next(os.walk(path))[1]:
         logger.warning(
             f"AUTOFS_PERMISSION_WARNING {fullpath} Not exported but in autofs config or server not responding"
         )
+
+    # check if path is in ignore list
+    if in_ignore_list(mount, args.ignore):
+        # found in ignore list skip over rest
+        continue
 
     # grab metadata on the path for permissions
     st = os.stat(fullpath)
