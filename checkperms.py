@@ -45,15 +45,21 @@ logger = logging.getLogger(__name__)
 logger.setLevel(logging.DEBUG)
 
 # syslog handler used for all cases
-handler = logging.handlers.SysLogHandler(address="/dev/log")
-handler.setLevel(logging.INFO)
-logger.addHandler(handler)
+sl_handler = logging.handlers.SysLogHandler(address="/dev/log")
+
+# stream / stderr handler
+st_handler = logging.StreamHandler()
 
 if args.debug:
-    # stderr handler enabled if --debug
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.DEBUG)
-    logger.addHandler(handler)
+    # debug requsted
+    st_handler.setLevel(logging.DEBUG)
+    sl_handler.setLevel(logging.DEBUG)
+else:
+    st_handler.setLevel(logging.CRITICAL)
+    sl_handler.setLevel(logging.INFO)
+
+logger.addHandler(sl_handler)
+logger.addHandler(st_handler)
 
 
 def any_world_access(st):
