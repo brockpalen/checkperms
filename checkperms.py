@@ -86,6 +86,11 @@ parser.add_argument(
     type=str,
     default=False,
 )
+parser.add_argument(
+    "--fix-list",
+    help="Path to save a list of paths that can be fixed by simple POSIX permissions",
+    default=False,
+)
 
 args = parser.parse_args()
 
@@ -135,11 +140,20 @@ def in_ignore_list(mount, ignore=False):
         return False
 
 
-def posix_or_acl(st, fullpath):
-    """Check if permissions was granted by open Unix/POSIX permisions or some other reason"""
+def posix_or_acl(st, fullpath, fix_list=None):
+    """Check if permissions was granted by open Unix/POSIX permisions or some other reason
+
+    Params:
+        st: stat  os.stat object
+        fullpath: (path)  Path being checked
+        fix_list: (path) Default: False,  write to path if --fix-list given
+    """
     if any_world_access(st):
         # some world bits are set log it
         logger.error(f"{fullpath} Permissions: {stat.filemode(st.st_mode)}")
+        if fix_list:
+            with open(fix_list, "a+") as fl:
+                fl.write(f"{str(fullpath)}\n")
     elif items:
         #  means we were able to list items in path but did not have world permissions set
         #  This means permissions are granted via ACL or other method than POSIX permissions
@@ -155,6 +169,15 @@ if __name__ == "__main__":
     if not path.is_dir():
         logger.critical(f"{path} is not a directory exiting")
         sys.exit(-2)
+
+    # if --fix-list delete if log exists
+    if args.fix_list:
+        fix_list = Path(args.fix_list)
+        if fix_list.is_file():
+            logger.debug(f"Prior fix-list found {fix_list} removing")
+            fix_list.unlink()
+    else:
+        fix_list = None
 
     # walk top level directory itterating over ever directory
     for mount in next(os.walk(path))[1]:
@@ -179,7 +202,7 @@ if __name__ == "__main__":
 
             # If here we can list what's in the directory AND it's not in the ingore list
             # why can we and log it
-            posix_or_acl(st, fullpath)
+            posix_or_acl(st, fullpath, fix_list=fix_list)
 
         except PermissionError:
             # GOOD we cannot access this path
