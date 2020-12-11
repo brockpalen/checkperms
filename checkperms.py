@@ -153,7 +153,7 @@ def posix_or_acl(st, fullpath, fix_list=None):
         logger.error(f"{fullpath} Permissions: {stat.filemode(st.st_mode)}")
         if fix_list:
             with open(fix_list, "a+") as fl:
-                fl.write(f"{str(fullpath)}\n")
+                fl.write(f"chmod o-rwx {str(fullpath)}\n")
     elif items:
         #  means we were able to list items in path but did not have world permissions set
         #  This means permissions are granted via ACL or other method than POSIX permissions

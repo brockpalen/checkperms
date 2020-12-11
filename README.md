@@ -42,10 +42,13 @@ You may have mounts in the same location that should have world permissions such
 python3 checkperms.py --ignore public,ref-genomes /nfs/autofs
 ```
 
-## Save list of paths that can fix with chmod
+## Save list of paths and commands that can fix with chmod
 
 ```
 python3 checkperms.py --fix-list /var/spool/fix-list /nfs/autofs
+
+#fix-list is
+chmod o-rwx <path>
 ```
 
 This only saves for paths that can step into because of `other` permissions.  This is mostly used to follow up with a script to `chmod` automatically.
