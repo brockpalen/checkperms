@@ -42,9 +42,18 @@ You may have mounts in the same location that should have world permissions such
 python3 checkperms.py --ignore public,ref-genomes /nfs/autofs
 ```
 
+## Save list of paths that can fix with chmod
+
+```
+python3 checkperms.py --fix-list /var/spool/fix-list /nfs/autofs
+```
+
+This only saves for paths that can step into because of `other` permissions.  This is mostly used to follow up with a script to `chmod` automatically.
+
+
 ## Limitations
 
-The tool can only check mounts that are staticly defined in autofs or not using autofs at all. 
+The tool can only check mounts that are static defined in autofs or not using autofs at all. 
 It will not work with automount wildcard matches 
 
 Eg. `*    server:/export/home/&`
