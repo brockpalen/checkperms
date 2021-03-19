@@ -17,10 +17,10 @@ from pathlib import Path
 class MyFormatter(logging.Formatter):
     """Don't leave it up to the user to corrrectly prefix log messages for log watcher to pick up."""
 
-    err_fmt = "AUTOFS_PERMISSION_ERROR: %(msg)s"
-    warn_fmt = "AUTOFS_PERMISSION_WARNING: %(msg)s"
-    info_fmt = "AUTOFS_PERMISSION_INFO: %(msg)s"
-    dbg_fmt = "AUTOFS_PERMISSION_DEBUG: %(msg)s"
+    err_fmt = "%(module)s AUTOFS_PERMISSION_ERROR: %(msg)s"
+    warn_fmt = "%(module)s AUTOFS_PERMISSION_WARNING: %(msg)s"
+    info_fmt = "%(module)s AUTOFS_PERMISSION_INFO: %(msg)s"
+    dbg_fmt = "%(module)s AUTOFS_PERMISSION_DEBUG: %(msg)s"
 
     def __init__(self):
         super().__init__(fmt="%(levelno)d: %(msg)s", datefmt=None, style="%")
