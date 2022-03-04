@@ -42,6 +42,30 @@ You may have mounts in the same location that should have world permissions such
 python3 checkperms.py --ignore public,ref-genomes /nfs/autofs
 ```
 
+## Security by Obscurity
+
+By default the checkperms will also try to `cd` into the folder. This is a
+check for folders with execute but no read bit.  This is often used to give
+another user access to a specific path but not allow them to list the path.
+This is security by obscurity because with enough effort or clever guessing any
+user has access to data in the folder even if they can't list it.
+
+To disable treating the ability to `cd` but not list it's contents as an error
+pass `--allow-obscurity`
+
+```
+checkperms --debug /home
+
+AUTOFS_PERMISSION_DEBUG: Checking: /home/user
+AUTOFS_PERMISSION_INFO: /home/user Permissions: drwxr-x--x
+AUTOFS_PERMISSION_ERROR: /home/user Permissions: drwxr-x--x
+
+checkperms --allow-obscurity --debug /home
+
+AUTOFS_PERMISSION_DEBUG: Checking: /home/user
+AUTOFS_PERMISSION_INFO: /home/user Permissions: drwxr-x--x
+```
+
 ## Save list of paths and commands that can fix with chmod
 
 ```
