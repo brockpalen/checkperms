@@ -100,23 +100,24 @@ logger = logging.getLogger(__name__)
 # set default level for all handlers
 logger.setLevel(logging.DEBUG)
 
-# syslog handler used for all cases
-sl_handler = logging.handlers.SysLogHandler(address="/dev/log")
-sl_handler.setFormatter(fmt)
 
-# stream / stderr handler
+# stream / stderr handler used for all cases
 st_handler = logging.StreamHandler()
 st_handler.setFormatter(fmt)
 
 if args.debug:
     # debug requsted
     st_handler.setLevel(logging.DEBUG)
-    sl_handler.setLevel(logging.DEBUG)
 else:
-    st_handler.setLevel(logging.CRITICAL)
+    # syslog handler used production run only
+    sl_handler = logging.handlers.SysLogHandler(address="/dev/log")
+    sl_handler.setFormatter(fmt)
     sl_handler.setLevel(logging.INFO)
+    logger.addHandler(sl_handler)
 
-logger.addHandler(sl_handler)
+    # set stream / stderr handler level
+    st_handler.setLevel(logging.CRITICAL)
+
 logger.addHandler(st_handler)
 
 
