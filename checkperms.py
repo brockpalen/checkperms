@@ -91,6 +91,11 @@ parser.add_argument(
     help="Path to save a list of paths that can be fixed by simple POSIX permissions",
     default=False,
 )
+parser.add_argument(
+    "--allow-obscurity",
+    help="Don't raise ERROR when using posix execute bit to allow access but not list folders eg o+x but o-r",
+    action="store_true",
+)
 
 args = parser.parse_args()
 
@@ -121,10 +126,36 @@ else:
 logger.addHandler(st_handler)
 
 
+class cd:
+    """Context manager for changing the current working directory.
+
+    Borrowed from https://stackoverflow.com/questions/431684/equivalent-of-shell-cd-command-to-change-the-working-directory
+    """
+
+    def __init__(self, newPath):
+        self.newPath = os.path.expanduser(newPath)
+
+    def __enter__(self):
+        self.savedPath = os.getcwd()
+        os.chdir(self.newPath)
+
+    def __exit__(self, etype, value, traceback):
+        os.chdir(self.savedPath)
+
+
 def any_world_access(st):
     """ Check if any of the world permission bits are set """
     # https://docs.python.org/3/library/stat.html
     return bool(st.st_mode & stat.S_IRWXO)
+
+
+def posix_issue(st, fullpath, fix_list=None):
+    """Log and optionally writeout fixes for posix permissions."""
+    # some world bits are set log it
+    logger.error(f"{fullpath} Permissions: {stat.filemode(st.st_mode)}")
+    if fix_list:
+        with open(fix_list, "a+") as fl:
+            fl.write(f"chmod o-rwx {str(fullpath)}\n")
 
 
 def in_ignore_list(mount, ignore=False):
@@ -150,14 +181,10 @@ def posix_or_acl(st, fullpath, fix_list=None):
         fix_list: (path) Default: False,  write to path if --fix-list given
     """
     if any_world_access(st):
-        # some world bits are set log it
-        logger.error(f"{fullpath} Permissions: {stat.filemode(st.st_mode)}")
-        if fix_list:
-            with open(fix_list, "a+") as fl:
-                fl.write(f"chmod o-rwx {str(fullpath)}\n")
+        posix_issue(st, fullpath, fix_list)
     elif items:
         #  means we were able to list items in path but did not have world permissions set
-        #  This means permissions are granted via ACL or other method than POSIX permissions
+        #  This means permissions are granted via ACL or other method than POSIX permissions eg AFS
         logger.error(
             f"{fullpath} allowed access without posix permisions: {stat.filemode(st.st_mode)}"
         )
@@ -208,6 +235,18 @@ if __name__ == "__main__":
         except PermissionError:
             # GOOD we cannot access this path
             logger.info(f"{fullpath} Permissions: {stat.filemode(st.st_mode)}")
+
+            # while we can't list check for obsurity issues, eg POSIX permission for X bit only.
+            # allows to cd but not list. A clever user could guess file/folder names and copy out data
+            try:
+                with cd(fullpath):
+                    # if we are here we could cd into the folder but not list it's contents
+                    if not args.allow_obscurity:
+                        posix_issue(st, fullpath, fix_list)
+            except PermissionError:
+                # expected to have permission issue again let slide cannot cd into location
+                pass
+
         except FileNotFoundError:
             # BAD when defined in /etc/autofs.d/  but not currently exported to host or server down
             logger.warning(
