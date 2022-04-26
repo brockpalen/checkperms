@@ -42,6 +42,14 @@ You may have mounts in the same location that should have world permissions such
 python3 checkperms.py --ignore public,ref-genomes /nfs/autofs
 ```
 
+## Allow users to opt out of the check
+
+Not recomended for high sensitivity environments.  The option `--user
+-accepts-risk` will check for the existance of an `accept_risk` file in the root of
+the path being checked. If found further checks are skipped. 
+
+This check allows the user to 'opt into' that they know what they are doing.
+
 ## Security by Obscurity
 
 By default the checkperms will also try to `cd` into the folder. This is a

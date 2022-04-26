@@ -81,6 +81,11 @@ parser.add_argument(
     action="store_true",
 )
 parser.add_argument(
+    "--user-accepts-risk",
+    help="check the existence of accept_risk and skip checks",
+    action="store_true",
+)
+parser.add_argument(
     "--ignore",
     help="comma list of mounts to ignore. Used for common shared data eg med-genomes",
     type=str,
@@ -212,8 +217,17 @@ if __name__ == "__main__":
         fullpath = path / mount
         logger.debug(f"Checking: {fullpath}")
 
-        # trigger automount by stepping into the top level of the directory
         try:
+            # check if we allow users to opt out of the check
+            if args.user_accepts_risk:
+                accept = fullpath / "accept_risk"
+                logger.debug(f"Checking for {accept}")
+                if accept.is_file():
+                    logger.info(f"{fullpath} {accept} user accepted risk skipping further checks")
+                    continue
+                else:
+                    logger.debug(f"{accept} not found further checks will be processed")
+
             # grab metadata on the path for permissions
             st = os.stat(fullpath)
             logger.debug(st)
