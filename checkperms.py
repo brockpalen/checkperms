@@ -223,7 +223,9 @@ if __name__ == "__main__":
                 accept = fullpath / "accept_risk"
                 logger.debug(f"Checking for {accept}")
                 if accept.is_file():
-                    logger.info(f"{fullpath} {accept} user accepted risk skipping further checks")
+                    logger.info(
+                        f"{fullpath} {accept} user accepted risk skipping further checks"
+                    )
                     continue
                 else:
                     logger.debug(f"{accept} not found further checks will be processed")
@@ -258,6 +260,15 @@ if __name__ == "__main__":
                     if not args.allow_obscurity:
                         posix_issue(st, fullpath, fix_list)
             except PermissionError:
+
+                # Check is there is trailing write access even if no read (r) or execute/traverse (x) permissions
+                # This effectively isn't for security other than cleanup
+                if os.access(fullpath, os.W_OK):
+                    logger.error(
+                        f"{fullpath} has write permissions but does not allow read (r) or execute/traverse (x) treating as error"
+                    )
+                    posix_issue(st, fullpath, fix_list)
+
                 # expected to have permission issue again let slide cannot cd into location
                 pass
 
